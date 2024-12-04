@@ -65,7 +65,7 @@ def return_view(request):
         access_token = response['access_token']
 
         r = requests.get(
-            settings.CONFIG_FILE.get('pretix_auth_okta', 'url') + '/userinfo',
+            "https://graph.microsoft.com"+ '/oidc/userinfo',
             headers={
                 'Authorization': f'Bearer {access_token}'
             }
