@@ -51,7 +51,7 @@ def return_view(request):
 
     try:
         r = requests.post(
-            settings.CONFIG_FILE.get('pretix_auth_okta', 'url') + '/v1/token',
+            settings.CONFIG_FILE.get('pretix_auth_okta', 'url') + '/token',
             data={
                 'grant_type': 'authorization_code',
                 'client_id': settings.CONFIG_FILE.get('pretix_auth_okta', 'client_id'),
@@ -65,7 +65,7 @@ def return_view(request):
         access_token = response['access_token']
 
         r = requests.get(
-            settings.CONFIG_FILE.get('pretix_auth_okta', 'url') + '/v1/userinfo',
+            settings.CONFIG_FILE.get('pretix_auth_okta', 'url') + '/userinfo',
             headers={
                 'Authorization': f'Bearer {access_token}'
             }
