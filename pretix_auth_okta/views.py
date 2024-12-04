@@ -82,7 +82,7 @@ def return_view(request):
             'okta', response['email'],
             set_always={},
             set_on_creation={
-                'sub': response.get('oid'),
+                'sub': response.get('email'),
                 'fullname': '{} {}'.format(
                     response.get('given_name', ''),
                     response.get('family_name', ''),
