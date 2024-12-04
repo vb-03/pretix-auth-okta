@@ -79,9 +79,10 @@ def return_view(request):
 
     try:
         u = User.objects.get_or_create_for_backend(
-            'okta', response['sub'], response['email'],
+            'okta', response['email'],
             set_always={},
             set_on_creation={
+                'sub': response['oid'],
                 'fullname': '{} {}'.format(
                     response.get('given_name', ''),
                     response.get('family_name', ''),
