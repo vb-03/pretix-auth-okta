@@ -65,7 +65,7 @@ def return_view(request):
         access_token = response['access_token']
 
         r = requests.get(
-            "https://graph.microsoft.com"+ '/oidc/userinfo',
+            "https://graph.microsoft.com"+ '/userinfo',
             headers={
                 'Authorization': f'Bearer {access_token}'
             }
@@ -86,8 +86,8 @@ def return_view(request):
                     response.get('given_name', ''),
                     response.get('family_name', ''),
                 ),
-                'locale': response.get('locale').lower()[:2],
-                'timezone': response.get('zoneinfo', 'UTC'),
+                #'locale': response.get('locale').lower()[:2],
+                #'timezone': response.get('zoneinfo', 'UTC'),
             }
         )
     except EmailAddressTakenError:
