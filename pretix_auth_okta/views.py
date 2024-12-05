@@ -1,6 +1,5 @@
 import logging
 import requests
-import jwt
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect
@@ -15,11 +14,12 @@ from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 
+
 def start_view(request):
     request.session['pretix_auth_okta_nonce'] = get_random_string(32)
     url = (
             settings.CONFIG_FILE.get('pretix_auth_okta', 'url') +
-            '/authorize?client_id={client_id}&none={nonce}&redirect_uri={redirect_uri}&state={state}&response_type=code id_token&response_mode=form_post&scope=openid+profile+email'
+            '/authorize?client_id={client_id}&none={nonce}&redirect_uri={redirect_uri}&state={state}&response_type=code&response_mode=query&scope=openid+profile+email'
     ).format(
         client_id=settings.CONFIG_FILE.get('pretix_auth_okta', 'client_id'),
         nonce=request.session['pretix_auth_okta_nonce'],
@@ -27,6 +27,7 @@ def start_view(request):
         redirect_uri=quote(build_absolute_uri('plugins:pretix_auth_okta:return'))
     )
     return redirect(url)
+
 
 def return_view(request):
     # check for error state
@@ -61,34 +62,32 @@ def return_view(request):
         )
         r.raise_for_status()
         response = r.json()
-        id_token = response['id_token']
+        access_token = response['access_token']
 
-        # Decode and verify the ID token
-        key_url = "https://login.microsoftonline.com/{tenant_id}/discovery/v2.0/keys".format(
-            tenant_id=settings.CONFIG_FILE.get('pretix_auth_okta', 'tenant_id')
+        r = requests.get(
+            "https://graph.microsoft.com"+ '/oidc/userinfo',
+            headers={
+                'Authorization': f'Bearer {access_token}'
+            }
         )
-        keys = requests.get(key_url).json()
-        public_key = keys['keys'][0]  # Assuming the first key is the one we need
-
-        # Decode the token
-        claims = jwt.decode(id_token, public_key, algorithms=['RS256'], audience=settings.CONFIG_FILE.get('pretix_auth_okta', 'client_id'))
-    except (requests.RequestException, jwt.PyJWTError) as e:
-        logger.exception('Azure AD login failed.')
+        r.raise_for_status()
+        response = r.json()
+    except:
+        logger.exception('Okta login failed.')
         messages.error(request, _('Login was not successful due to a technical error.'))
         return redirect(reverse('control:auth.login'))
 
     try:
         u = User.objects.get_or_create_for_backend(
-            'azuread', claims['oid'], claims['email'],
+            'okta', response['sub'], response['email'],
             set_always={},
             set_on_creation={
-                'fullname': claims['name']
-                #'{} {}'.format(
-                   # claims.get('given_name', ''),
-                   # claims.get('family_name', ''),
-              #  ),
-                #'locale': claims.get('locale').lower()[:2],
-                #'timezone': claims.get('zoneinfo', 'UTC'),
+                'fullname': '{} {}'.format(
+                    response.get('given_name', ''),
+                    response.get('family_name', ''),
+                ),
+                #'locale': response.get('locale').lower()[:2],
+                #'timezone': response.get('zoneinfo', 'UTC'),
             }
         )
     except EmailAddressTakenError:
