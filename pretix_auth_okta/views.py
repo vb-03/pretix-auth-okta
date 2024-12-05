@@ -79,13 +79,14 @@ def return_view(request):
 
     try:
         u = User.objects.get_or_create_for_backend(
-            'azuread', claims['sub'], claims['email'],
+            'azuread', claims['oid'], claims['email'],
             set_always={},
             set_on_creation={
-                'fullname': '{} {}'.format(
-                    claims.get('given_name', ''),
-                    claims.get('family_name', ''),
-                ),
+                'fullname': claims['name']
+                #'{} {}'.format(
+                   # claims.get('given_name', ''),
+                   # claims.get('family_name', ''),
+              #  ),
                 #'locale': claims.get('locale').lower()[:2],
                 #'timezone': claims.get('zoneinfo', 'UTC'),
             }
