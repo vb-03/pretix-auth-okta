@@ -19,7 +19,7 @@ def start_view(request):
     request.session['pretix_auth_okta_nonce'] = get_random_string(32)
     url = (
             settings.CONFIG_FILE.get('pretix_auth_okta', 'url') +
-            '/authorize?client_id={client_id}&none={nonce}&redirect_uri={redirect_uri}&state={state}&response_type=code id_token&response_mode=query&scope=openid+profile+email'
+            '/authorize?client_id={client_id}&none={nonce}&redirect_uri={redirect_uri}&state={state}&response_type=code id_token&response_mode=form_post&scope=openid+profile+email'
     ).format(
         client_id=settings.CONFIG_FILE.get('pretix_auth_okta', 'client_id'),
         nonce=request.session['pretix_auth_okta_nonce'],
