@@ -65,7 +65,7 @@ def return_view(request):
         access_token = response['access_token']
 
         r = requests.get(
-            "https://graph.microsoft.com"+ '/v1.0/me',
+            "https://graph.microsoft.com"+ '/oidc/userinfo',
             headers={
                 'Authorization': f'Bearer {access_token}'
             }
@@ -79,12 +79,12 @@ def return_view(request):
 
     try:
         u = User.objects.get_or_create_for_backend(
-            'okta', response['id'], response['mail'],
+            'okta', response['sub'], response['email'],
             set_always={},
             set_on_creation={
                 'fullname': '{} {}'.format(
                     response.get('given_name', ''),
-                    response.get('surname', ''),
+                    response.get('family_name', ''),
                 ),
                 #'locale': response.get('locale').lower()[:2],
                 #'timezone': response.get('zoneinfo', 'UTC'),
